@@ -465,7 +465,7 @@ advanced:
     #      Example: @server lobby1,lobby2
     #
     commands-after-login:
-      - "@console @proxy send @player lobby" # run in proxy console (bungee, velocity, etc.)
+    #  - "@console @proxy send @player lobby" # run in proxy console (bungee, velocity, etc.)
 
     # Sets the list of allowed commands before authenticating.
     allowed-commands:

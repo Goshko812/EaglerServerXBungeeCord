@@ -69,7 +69,7 @@ init_environment() {
 # Function to stop all tmux sessions gracefully
 stop_servers() {
     # Send Ctrl-C to each session, wait, then kill
-    print_message "Sending Ctrl-C to bungeecord server session..."
+    print_message "Sending Ctrl-C to BungeeCord server session..."
     docker exec -it mc-server-1-12-2 bash -c '
         if tmux has-session -t bungeecord 2>/dev/null; then tmux send-keys -t bungeecord C-c; fi
     '
@@ -83,7 +83,7 @@ stop_servers() {
     '
     print_message "Waiting 5 seconds for clean shutdown..."
     sleep 5
-    print_message "Killing bungeecord session..."
+    print_message "Killing BungeeCord session..."
     docker exec -it mc-server-1-12-2 bash -c 'tmux kill-session -t bungeecord 2>/dev/null || true'
     print_message "Killing main server session..."
     docker exec -it mc-server-1-12-2 bash -c 'tmux kill-session -t server 2>/dev/null || true'
@@ -129,7 +129,7 @@ start_servers() {
 # Stops servers only if any tmux sessions are active, then zips /data/eagler-server-1-12-2 to a date-named file
 backup_servers() {
     current_date=$(date +%Y-%m-%d)
-    backup_name="mc-server-1-12-2s-backup-${current_date}.zip"
+    backup_name="mc-server-1-12-2-backup-${current_date}.zip"
 
     # Check if any tmux sessions exist inside the container
     if docker exec mc-server-1-12-2 bash -c "tmux has-session -t bungeecord 2>/dev/null || tmux has-session -t server 2>/dev/null || tmux has-session -t limbo 2>/dev/null"; then
@@ -146,6 +146,42 @@ backup_servers() {
         print_message "Backup created successfully at: ./persistent-storage-folder/${backup_name}"
     else
         print_error "Backup creation failed!"
+        exit 1
+    fi
+}
+
+# Function to restore a backup to /data/eagler-server-1-12-2
+restore_servers() {
+    backup_file="$1"
+    print_message "Restoring backup: $backup_file"
+
+    if [ -z "$backup_file" ]; then
+        print_error "No backup file specified. Usage: $0 --restore FILENAME"
+        exit 1
+    fi
+    if [ ! -f "persistent-storage-folder/$backup_file" ]; then
+        print_error "Backup file not found in ./persistent-storage-folder/"
+        exit 1
+    fi
+
+    # Stop servers if any are running
+    if docker exec mc-server-1-12-2 bash -c "tmux has-session -t bungeecord 2>/dev/null || tmux has-session -t server 2>/dev/null || tmux has-session -t limbo 2>/dev/null"; then
+        print_message "Stopping servers before restore..."
+        stop_servers
+    fi
+
+    # Copy and unzip inside container
+    docker cp "persistent-storage-folder/$backup_file" mc-server-1-12-2:/data/
+    docker exec -it mc-server-1-12-2 bash -c "
+        rm -rf /data/eagler-server-1-12-2 &&
+        unzip -o /data/$backup_file -d /data &&
+        rm /data/$backup_file
+    "
+
+    if [ $? -eq 0 ]; then
+        print_message "Backup restored successfully!"
+    else
+        print_error "Backup restoration failed!"
         exit 1
     fi
 }
@@ -196,6 +232,7 @@ show_help() {
     echo "  --start     Start all Minecraft servers in tmux sessions"
     echo "  --stop      Stop all running Minecraft server tmux sessions"
     echo "  --backup    Create a backup of all server data"
+    echo "  --restore   Restore a backup file: --restore FILENAME"
     echo "  --help      Display this help message"
     echo "" 
 }
@@ -232,6 +269,14 @@ case "$1" in
             exit 1
         fi
         backup_servers
+        ;;
+        
+    --restore)
+        if ! check_container_running; then
+            print_error "Docker container is not running. Please start it first with --init or --start"
+            exit 1
+        fi
+        restore_servers "$2"
         ;;
 
     --help)

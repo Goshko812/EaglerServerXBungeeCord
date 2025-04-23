@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# EaglerServerXbungeecord Automation Script
+# EaglerServerXBungeeCord Automation Script
 # This script automates the setup and management of Eagler servers in Docker
 
 # Define color codes for output
@@ -70,12 +70,12 @@ init_environment() {
 start_servers() {
     print_message "Starting servers using tmux sessions..."
     
-    # Start bungeecord server
+    # Start BungeeCord server
     docker exec -it mc-server-1-12-2 bash -c '
         cd /data/eagler-server-1-12-2
         tmux new-session -d -s bungeecord
         tmux send-keys -t bungeecord "cd bungeecord && chmod +x bungeecord.sh && ./bungeecord.sh" C-m
-        echo "bungeecord server started!"
+        echo "BungeeCord server started!"
     '
     
     # Start main server

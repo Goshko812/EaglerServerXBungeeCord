@@ -2,12 +2,30 @@
 > DOCS NOT FINISHED
 > 
 
-# EaglerServerXBungeecord
-Scripts to get your EaglerServer up and running without a hassle
-> [!IMPORTANT]
+# EaglerServerXBungeeCord
+Scripts to get your EaglerServer up and running without a hassle.
+The script initializes a Docker environment and setups everything necessary to run the velocity, limbo, and Minecraft server.
+The script also supports making backups, which can and should be automated using [crontab](https://crontab.guru/).
 
-To make this work just run the script and it will download docker if it't not already downloaded and setup the servers for you
+### Setup
 
+1. Download the repo:
+```bash
+git clone https://github.com/Goshko812/EaglerServerXBungeeCord
+```
+2. Enter the directory and make the script executable:
+```bash
+cd EaglerServerXVelocity && chmod +x script.sh
+```
+3. Run the script to initialize the environment:
+```bash
+./script.sh --init
+```
+4. Run the script again to start the servers:
+```bash
+./script --start
+```
+5. Profit
 ## Misc Information
 #### tmux cheat sheet
 **Creating session**
